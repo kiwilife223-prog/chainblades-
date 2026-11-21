@@ -7,7 +7,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -q chainblades-mod-src.zip -d proj
+        with:
+          fetch-depth: 0
+      - name: Unpack the newest zip
+        run: |
+          set -e
+          newest=$(git log --diff-filter=AM --name-only --format= -- '*.zip' | awk 'NF && !seen[$0]++' | head -1)
+          echo "Using zip: $newest"
+          mkdir proj
+          unzip -oq "$newest" -d proj
+          ver=$(grep -m1 "^version" proj/build.gradle || true)
+          echo "Zip used: $newest / $ver" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
